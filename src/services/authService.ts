@@ -1,4 +1,4 @@
-const CANVAS_BASE_URL = "https://canvas.vt.edu";
+const CANVAS_BASE_URL = 'https://canvas.vt.edu';
 const CLIENT_ID = import.meta.env.VITE_CANVAS_CLIENT_ID;
 const REDIRECT_URI = import.meta.env.VITE_CANVAS_REDIRECT_URI;
 
@@ -11,10 +11,10 @@ export const redirectToCanvasOAuth = () => {
 // Exchange authorization code for access token
 export const exchangeCodeForToken = async (code: string) => {
   const response = await fetch(`${CANVAS_BASE_URL}/login/oauth2/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      grant_type: "authorization_code",
+      grant_type: 'authorization_code',
       client_id: CLIENT_ID,
       client_secret: import.meta.env.VITE_CANVAS_CLIENT_SECRET,
       redirect_uri: REDIRECT_URI,
@@ -22,6 +22,6 @@ export const exchangeCodeForToken = async (code: string) => {
     }),
   });
 
-  if (!response.ok) throw new Error("Token exchange failed");
+  if (!response.ok) throw new Error('Token exchange failed');
   return response.json(); // { access_token, refresh_token, expires_in }
 };

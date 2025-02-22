@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import OAuthCallback from "./pages/OAuthCallback";
-import Dashboard from "./pages/Dashboard";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/Login';
+import OAuthCallback from './pages/OAuthCallback';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
