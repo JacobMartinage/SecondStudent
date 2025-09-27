@@ -5,96 +5,109 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'pdf_viewer_pane.dart';
 
 import 'editor.dart';
 import 'file_system_viewer.dart';
-
 class EditorWorkspace extends StatefulWidget {
-  const EditorWorkspace({super.key});
+  const EditorWorkspace({Key? key}) : super(key: key);
 
   @override
   State<EditorWorkspace> createState() => _EditorWorkspaceState();
 }
-
 class _EditorWorkspaceState extends State<EditorWorkspace> {
   final GlobalKey _editorKey = GlobalKey();
-
   double _leftWidth = 300;
   bool _showSidebar = true;
+
+  File? _currentFile;           // <- track the selected file
+  String? _currentFilePath;     // for rename updates
+
+  bool get _isPdfSelected =>
+      _currentFilePath != null &&
+      _currentFilePath!.toLowerCase().endsWith('.pdf');
+
+  bool get _isJsonSelected =>
+      _currentFilePath != null &&
+      _currentFilePath!.toLowerCase().endsWith('.json');
 
   @override
   void initState() {
     super.initState();
-    _ensureWorkspacePath();          // <- NEW: make sure a sane default exists
+    _ensureWorkspacePath();
     _restoreLayoutPrefs();
   }
 
-  /// Choose a default, writable workspace per platform and persist it if missing.
   Future<void> _ensureWorkspacePath() async {
-    final prefs = await SharedPreferences.getInstance();
-    final existing = prefs.getString('path_to_files');
-    if (existing != null && existing.trim().isNotEmpty) return;
-
-    String path;
-    if (kIsWeb) {
-      // No native FS. Your FileStorage page can swap to IndexedDB later.
-      path = 'web://workspace';
-    } else if (Platform.isMacOS) {
-      // ~/Library/Application Support/<bundle-id>/SecondStudent/workspace
-      final support = await getApplicationSupportDirectory();
-      final ws = Directory(p.join(support.path, 'SecondStudent', 'workspace'));
-      if (!await ws.exists()) await ws.create(recursive: true);
-      path = ws.path;
-    } else if (Platform.isWindows || Platform.isLinux) {
-      // App documents dir (writable). If you prefer real "Documents", add a helper or another plugin.
-      final docs = await getApplicationDocumentsDirectory();
-      final ws = Directory(p.join(docs.path, 'SecondStudent', 'workspace'));
-      if (!await ws.exists()) await ws.create(recursive: true);
-      path = ws.path;
-    } else if (Platform.isIOS || Platform.isAndroid) {
-      final docs = await getApplicationDocumentsDirectory();
-      final ws = Directory(p.join(docs.path, 'workspace'));
-      if (!await ws.exists()) await ws.create(recursive: true);
-      path = ws.path;
-    } else {
-      final tmp = await getTemporaryDirectory();
-      final ws = Directory(p.join(tmp.path, 'workspace'));
-      if (!await ws.exists()) await ws.create(recursive: true);
-      path = ws.path;
+    if (kIsWeb) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final existing = prefs.getString('path_to_files')?.trim();
+      if (existing == null || existing.isEmpty) {
+        final docs = await getApplicationDocumentsDirectory();
+        final candidate = p.join(docs.path, 'SecondStudent');
+        await Directory(candidate).create(recursive: true);
+        await prefs.setString('path_to_files', candidate);
+      }
+    } catch (_) {
+      // best-effort; ignore failures
     }
-
-    await prefs.setString('path_to_files', path);
   }
 
   Future<void> _restoreLayoutPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _leftWidth = (prefs.getDouble('workspace_left_width') ?? 300).clamp(220, 600);
-      _showSidebar = prefs.getBool('workspace_show_sidebar') ?? true;
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedWidth = prefs.getDouble('workspace_left_width');
+      final savedSidebar = prefs.getBool('workspace_show_sidebar');
+      if (!mounted) return;
+      setState(() {
+        if (savedWidth != null) {
+          _leftWidth = savedWidth.clamp(220.0, 600.0);
+        }
+        if (savedSidebar != null) {
+          _showSidebar = savedSidebar;
+        }
+      });
+    } catch (_) {
+      // ignore
+    }
   }
 
   Future<void> _persistLayoutPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('workspace_left_width', _leftWidth);
-    await prefs.setBool('workspace_show_sidebar', _showSidebar);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('workspace_left_width', _leftWidth);
+      await prefs.setBool('workspace_show_sidebar', _showSidebar);
+    } catch (_) {
+      // ignore
+    }
   }
 
   Future<void> _onFileSelected(File file) async {
-    try {
-      final json = await file.readAsString();
-      final state = _editorKey.currentState;
-      if (state == null) {
+    _currentFile = file;
+    _currentFilePath = file.path;
+
+    if (_isJsonSelected) {
+      try {
+        final json = await file.readAsString();
+        final state = _editorKey.currentState;
+        if (state == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Editor not ready yet.')),
+          );
+          return;
+        }
+        (state as dynamic).loadFromJsonString(json, sourcePath: file.path);
+      } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Editor not ready yet.')));
-        return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open file: $e')),
+        );
       }
-      (state as dynamic).loadFromJsonString(json, sourcePath: file.path);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to open file: $e')));
+    } else {
+      // For PDFs we just rebuild; PdfViewerPane reads from _currentFile
+      setState(() {});
     }
   }
 
@@ -122,6 +135,14 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
         ),
       ),
     );
+
+    Widget rightPane;
+    if (_isPdfSelected && _currentFile != null) {
+      rightPane = PdfViewerPane(file: _currentFile!);
+    } else {
+      // default to editor (works when nothing selected, too)
+      rightPane = EditorScreen(key: _editorKey);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -156,17 +177,26 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
                 child: FileSystemViewer(
                   onFileSelected: _onFileSelected,
                   onFileRenamed: (oldFile, newFile) {
-                    final state = _editorKey.currentState;
-                    if (state == null) return;
-                    try {
-                      (state as dynamic).updateCurrentFilePath(newFile.path);
-                    } catch (_) {}
+                    // Keep path in sync when user renames a file from the sidebar
+                    if (_currentFilePath == oldFile.path) {
+                      _currentFilePath = newFile.path;
+                      _currentFile = File(newFile.path);
+                      // if editor has a method to update the path, call it
+                      final state = _editorKey.currentState;
+                      if (state != null && _isJsonSelected) {
+                        try {
+                          (state as dynamic).updateCurrentFilePath(newFile.path);
+                        } catch (_) {}
+                      } else {
+                        setState(() {});
+                      }
+                    }
                   },
                 ),
               ),
             ),
           if (_showSidebar) divider,
-          Expanded(child: EditorScreen(key: _editorKey)),
+          Expanded(child: rightPane),
         ],
       ),
     );

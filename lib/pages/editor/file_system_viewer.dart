@@ -5,6 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+bool _isJson(FileSystemEntity e) =>
+    e is File && e.path.toLowerCase().endsWith('.json');
+
+bool _isPdf(FileSystemEntity e) =>
+    e is File && e.path.toLowerCase().endsWith('.pdf');
+
+bool _isOpenable(FileSystemEntity e) => e is File && (_isJson(e) || _isPdf(e));
+
 typedef FileSelected = void Function(File file);
 typedef FileRenamed = void Function(File oldFile, File newFile);
 
@@ -334,15 +342,23 @@ class _FileSystemViewerState extends State<FileSystemViewer> {
 
   Widget _buildFileTile(File file, {required String parentDir, int depth = 0}) {
     final isJson = _isJson(file);
+    final isPdf = _isPdf(file);
+    final openable = isJson || isPdf;
     final name = _nameOf(file.path);
 
     return ListTile(
       dense: true,
-      leading: Icon(isJson ? Icons.description : Icons.insert_drive_file),
+      leading: Icon(
+        isJson
+            ? Icons.description
+            : isPdf
+            ? Icons.picture_as_pdf
+            : Icons.insert_drive_file,
+      ),
       title: Text(name, overflow: TextOverflow.ellipsis),
       subtitle: Text(file.path, maxLines: 1, overflow: TextOverflow.ellipsis),
-      onTap: isJson ? () => widget.onFileSelected(file) : null,
-      enabled: isJson,
+      onTap: openable ? () => widget.onFileSelected(file) : null,
+      enabled: openable,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
