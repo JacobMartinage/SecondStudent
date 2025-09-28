@@ -7,6 +7,7 @@ import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill/flutter_quill.dart' show EmbedBuilder, Embed, EmbedContext;
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:secondstudent/pages/editor/customblocks.dart';
 import 'package:secondstudent/pages/editor/customBlocks/iframe_block.dart';
@@ -16,6 +17,8 @@ import 'slash_menu/slash_menu.dart';
 import 'slash_menu/slash_menu_action.dart';
 import 'slash_menu/custom_slash_menu_items.dart';
 import 'slash_menu/default_slash_menu_items.dart';
+import 'package:secondstudent/pages/editor/customBlocks/iframe_block.dart';
+
 
 
 class EditorScreen extends StatefulWidget {
@@ -605,6 +608,8 @@ List<SlashMenuItemData> get _filteredSlashItems {
                                   existingOffset: existingOffset,
                                 ),
                           ),
+                          // Table embed builder to handle table elements
+                          _TableEmbedBuilder(),
                           ...FlutterQuillEmbeds.editorBuilders(
                             imageEmbedConfig: QuillEditorImageEmbedConfig(
                               imageProviderBuilder: (context, imageUrl) {
@@ -648,4 +653,43 @@ List<SlashMenuItemData> get _filteredSlashItems {
       ),
     );
   }
+}
+
+class _TableEmbedBuilder implements EmbedBuilder {
+  @override
+  String get key => 'table';
+
+  @override
+  Widget build(BuildContext context, EmbedContext embedContext) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.table_chart, size: 16, color: Colors.grey),
+          const SizedBox(width: 8),
+          Text(
+            'Table',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool get expanded => true;
+
+  @override
+  WidgetSpan buildWidgetSpan(Widget widget) => WidgetSpan(child: widget);
+
+  @override
+  String toPlainText(dynamic node) => '[Table]';
 }

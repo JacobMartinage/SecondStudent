@@ -80,29 +80,3 @@ class NotesEmbedBuilder implements EmbedBuilder {
     }
   }
 }
-
-/// ==== Custom "iframe" block embed ==========================================
-class IframeBlockEmbed extends CustomBlockEmbed {
-  static const String kType = 'iframe';
-
-  IframeBlockEmbed._(String value) : super(kType, value);
-
-  factory IframeBlockEmbed({required String url, double? height}) {
-    final payload = <String, dynamic>{'url': url};
-    if (height != null) payload['height'] = height;
-    return IframeBlockEmbed._(jsonEncode(payload));
-  }
-
-  factory IframeBlockEmbed.fromRaw(String value) => IframeBlockEmbed._(value);
-
-  Map<String, dynamic> get dataMap {
-    try {
-      final decoded = jsonDecode(data);
-      if (decoded is Map<String, dynamic>) return decoded;
-      if (decoded is Map) {
-        return decoded.map((k, v) => MapEntry(k.toString(), v));
-      }
-    } catch (_) {}
-    return const <String, dynamic>{};
-  }
-}

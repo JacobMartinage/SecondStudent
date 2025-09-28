@@ -20,7 +20,6 @@ extension ContextExtension on BuildContext {
     // Pushes the popup to the app navigator
     await Navigator.of(this).push(PageRouteBuilder(
       // See-through 'page'
-      opaque: false,
       // Builds the popup; creates separate instance of BuildContext
       pageBuilder: (context, _, __) {
         return widget;
