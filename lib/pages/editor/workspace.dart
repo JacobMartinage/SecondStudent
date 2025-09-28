@@ -25,8 +25,7 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
 
   File? _currentFile;
   bool get _showingPdf =>
-      _currentFile != null &&
-      _currentFile!.path.toLowerCase().endsWith('.pdf');
+      _currentFile != null && _currentFile!.path.toLowerCase().endsWith('.pdf');
 
   @override
   void initState() {
@@ -71,7 +70,10 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
   Future<void> _restoreLayoutPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _leftWidth = (prefs.getDouble('workspace_left_width') ?? 300).clamp(220, 600);
+      _leftWidth = (prefs.getDouble('workspace_left_width') ?? 300).clamp(
+        220,
+        600,
+      );
       _showSidebar = prefs.getBool('workspace_show_sidebar') ?? true;
     });
   }
@@ -111,15 +113,17 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
         if (mounted) setState(() {}); // updates app bar title, etc.
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to open file: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to open file: $e')));
       }
       return;
     }
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Unsupported file type')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Unsupported file type')));
   }
 
   @override
@@ -158,7 +162,9 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
         actions: [
           IconButton(
             tooltip: _showSidebar ? 'Hide sidebar' : 'Show sidebar',
-            icon: Icon(_showSidebar ? Icons.view_sidebar : Icons.view_sidebar_outlined),
+            icon: Icon(
+              _showSidebar ? Icons.view_sidebar : Icons.view_sidebar_outlined,
+            ),
             onPressed: () {
               setState(() => _showSidebar = !_showSidebar);
               _persistLayoutPrefs();
@@ -206,7 +212,7 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
               fit: StackFit.expand,
               children: [
                 // Editor stays alive even while a PDF is shown
-                EditorScreen(key: _editorKey),
+                EditorScreen(key: _editorKey, docId: 'your_doc_id_here'), // Replace 'your_doc_id_here' with the actual document ID
 
                 // Initial hint overlay if nothing selected (optional)
                 if (_currentFile == null)
@@ -220,7 +226,9 @@ class _EditorWorkspaceState extends State<EditorWorkspace> {
                 if (_showingPdf)
                   kIsWeb
                       ? const Center(
-                          child: Text('Web PDF viewing from local paths is not supported yet.'),
+                          child: Text(
+                            'Web PDF viewing from local paths is not supported yet.',
+                          ),
                         )
                       : PdfViewerPane(file: _currentFile!),
               ],

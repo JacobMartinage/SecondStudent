@@ -64,6 +64,7 @@ dependencies:
   dart_eval: ^0.8.2
   flutter_html: ^3.0.0
   flutter_widget_from_html: ^0.17.1
+  quill_delta: ^3.0.0-nullsafety.2
   syncfusion_flutter_pdfviewer: ^31.1.21
   file_selector: ^1.0.3
 

@@ -1,4 +1,3 @@
-// lib/pages/startup/file_storage.dart
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -23,8 +22,7 @@ class FileStorage extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 String _prettyPath(String path) {
-  final home =
-      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+  final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
   if (home != null && home.isNotEmpty) {
     final normHome = Directory(home).absolute.path;
     final normPath = Directory(path).absolute.path;
@@ -54,7 +52,7 @@ Future<Directory> _desktopDocumentsDir() async {
     return Directory(home);
   }
 
-  // fallback
+  // Fallback
   return Directory.current;
 }
 
@@ -76,9 +74,7 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
     await prefs.setString('path_to_files', normalized);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Folder path saved: $normalized')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Folder path saved: $normalized')));
 
     // Return to HomePage so your workspace re-reads prefs
     Navigator.of(context).pushAndRemoveUntil(
@@ -125,10 +121,9 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
     return Directory.current;
   }
 
-  // add this helper
+  // Add this helper
   String _prettyPath(String path) {
-    final home =
-        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home != null && home.isNotEmpty) {
       final normHome = Directory(home).absolute.path;
       final normPath = Directory(path).absolute.path;
@@ -159,7 +154,7 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
       return Directory(home);
     }
 
-    // fallback
+    // Fallback
     return Directory.current;
   }
 
@@ -178,7 +173,7 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
         if (!await ws.exists()) await ws.create(recursive: true);
         return ws;
       } catch (_) {
-        // fallback to app-docs if creating under Documents failed
+        // Fallback to app-docs if creating under Documents failed
         final appDocs = await getApplicationDocumentsDirectory();
         ws = Directory(p.join(appDocs.path, 'SecondStudent', 'workspace'));
         if (!await ws.exists()) await ws.create(recursive: true);
@@ -228,8 +223,7 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
       directory: root, // start here
       showGoUp: true,
       pickText: 'Use this folder',
-      requestPermission: () async =>
-          true, // desktop: no runtime permission dialog
+      requestPermission: () async => true, // desktop: no runtime permission dialog
     );
 
     if (selectedPath == null) return; // user cancelled
@@ -293,11 +287,31 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
               const SizedBox(height: 24),
               TextButton(
                 onPressed: () {
+                  launch('https://github.com/new');
+                  print('Link clicked');
+                },
+                child: const Text(
+                  'Github is a great way to add SCM to your notes!',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
                   launch('https://onedrive.live.com/?view=1');
                   print('Link clicked');
                 },
                 child: const Text(
                   'Feel free to sync your files on your own via OneDrive!',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  launch('https://drive.google.com/drive/my-drive');
+                  print('Link clicked');
+                },
+                child: const Text(
+                  'Google drive can be another good alternative!',
                   style: TextStyle(fontSize: 16),
                 ),
               ),
@@ -310,7 +324,6 @@ class _FolderSelectorWidgetState extends State<_FolderSelectorWidget> {
                 ),
               ),
               const SizedBox(height: 24),
-
               TextButton(
                 onPressed: () => _useRecommended(context),
                 child: const Text('Use Recommended Default'),
