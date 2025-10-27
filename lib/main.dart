@@ -40,17 +40,6 @@ void main() async {
   }
 
 
-  // need to do logic for making a .studentstudent file on every platform 
-  final String? pathToFiles = prefs.getString('path_to_files')?.trim();
-  if (pathToFiles != null && pathToFiles.isNotEmpty) {
-    final Directory studentDirectory = Directory(pathToFiles);
-    final Directory secondStudentDirectory = Directory('${studentDirectory.path}/.secondstudent');
-
-    if (!await secondStudentDirectory.exists()) {
-      await secondStudentDirectory.create(recursive: true);
-    }
-  }
-
   // double check theme initialized
   Themes.checkTheme();
 

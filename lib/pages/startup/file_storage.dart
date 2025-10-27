@@ -1,6 +1,5 @@
 // lib/pages/startup/file_storage.dart
 import 'dart:io';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +8,26 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 
+// pages 
 import 'package:secondstudent/pages/startup/home_page.dart';
 import 'package:secondstudent/pages/editor/sync.dart';
+
+// TODO : create base file system
+/*
+
+/
+  .secondstudent
+    plugins/
+      plugin-name/
+        custom-block.dart -> text
+        manifest.json -> jsonb
+    styles/
+    startup/
+  sampleFolder/
+    sample.txt
+    sample.rtf
+
+*/
 
 class FileStorage extends StatelessWidget {
   const FileStorage({super.key});

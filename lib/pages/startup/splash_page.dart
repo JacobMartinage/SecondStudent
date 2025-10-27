@@ -35,7 +35,10 @@ class SplashPageState extends State<SplashPage> {
     });
   }
 
-  //Redirects based on auth state
+  // Redirects based on auth state
+  // Additionally redirect based on if the folder exists or not 
+
+  // TODO : need to force a value to be in path to files before continuing 
   Future<void> _redirect() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String pathValue = prefs.getString('path_to_files') ?? '';
