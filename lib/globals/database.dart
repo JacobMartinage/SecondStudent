@@ -1,7 +1,4 @@
-import 'package:secondstudent/globals/account_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import '../../main.dart';
 
 /*
 Database is just used to store various functions used throughout the app
